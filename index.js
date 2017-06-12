@@ -3,7 +3,7 @@ module.exports = feedback
 var Gitlab = require('gitlab')
 var bodyParser = require('body-parser')
 
-var requiredOptions = [ 'url', 'token', 'repository' ]
+var requiredOptions = [ 'apiurl', 'url', 'token', 'repository' ]
 
 function feedback (options) {
   options = options || {}
@@ -22,7 +22,7 @@ function feedback (options) {
   })
 
   var gitlabConfig = {
-    url: options.url,
+    url: options.apiurl,
     token: options.token
   }
   if (options.auth) {
@@ -47,7 +47,7 @@ function feedback (options) {
       filepath = options.store.path.replace(/^\//, '').replace(/\/$/, '') + '/'
     }
     filepath += filename
-    var content = req.body.img.replace(/^data:([A-Za-z-+\/]+);base64,/, '')
+    var content = req.body.feedback.img.replace(/^data:([A-Za-z-+\/]+);base64,/, '')
 
     var screenshotUrl = options.url + '/' + options.store.repository.slug + '/raw/' + options.store.branch + '/' + filepath
     var issue = generateIssue(req.body, screenshotUrl, options)
@@ -126,21 +126,21 @@ function generateIssue (body, url, options) {
   var now = new Date()
 
   var description = [
-    body.note,
+    body.feedback.note,
     '',
     '## Browser Information',
     '',
-    '- Platform: ' + body.browser.platform,
-    '- User Agent: ' + body.browser.userAgent,
-    '- Cookies enabled: ' + (body.browser.cookieEnabled ? 'yes' : 'no'),
-    '- Plugins: ' + body.browser.plugins.join(', '),
+    '- Platform: ' + body.feedback.browser.platform,
+    '- User Agent: ' + body.feedback.browser.userAgent,
+    '- Cookies enabled: ' + (body.feedback.browser.cookieEnabled ? 'yes' : 'no'),
+    '- Plugins: ' + body.feedback.browser.plugins.join(', '),
     '',
     '## Additional Information',
     '',
-    '- URL: ' + body.url
+    '- URL: ' + body.feedback.url
   ]
-  if (body.contact) {
-    description.push('- Reported by: ' + body.contact)
+  if (body.feedback.contact) {
+    description.push('- Reported by: ' + body.feedback.contact)
   }
   description = description.concat([
     '- Reported at: ' + now.toLocaleTimeString() + ' ' + now.toLocaleDateString(),
@@ -151,7 +151,7 @@ function generateIssue (body, url, options) {
   ])
 
   var issue = {
-    title: body.note.slice(0, 30),
+    title: body.feedback.note.slice(0, 30),
     description: description.join('\n'),
     labels: options.labels.join(',')
   }
